@@ -1,0 +1,68 @@
+import org.mnp.orderdrooldemo.model.Participant;
+global org.mnp.orderdrooldemo.model.Rate rate;
+
+dialect "mvel"
+
+rule "Checking Existing Debt Against Loan Amount"
+ when
+  Participant(loanAmount > (2 * existingDebt))
+ then
+  rate.setLoanStatus("Rejected - Too Much Debt");
+  rate.setLoanRate(999);
+end
+
+rule "Checking Annual Salary is greater than 50000"
+ when
+  Participant(annualSalary <= 50000)
+ then
+  System.out.println("Checking Annual Salary is greater than 50000 priority 1");
+  rate.setLoanStatus("Rejected - Too low salary");
+  rate.setLoanRate(999);
+  drools.halt();
+end
+
+rule "Checking Annual Salary is greater than 50000 one"
+ when
+  Participant((rate.getLoanStatus()== null || rate.getLoanStatus()=="") && annualSalary <= 50000)
+ then
+ System.out.println("Checking Annual Salary is greater than 50000 priority 22222");
+  rate.setLoanStatus("Rejected - Too low salary updated priority 22222");
+  rate.setLoanRate(999);
+   drools.halt();
+end
+
+rule "Checking Credit Score less than 550"
+no-loop true
+ when
+  Participant(creditScore < 550, annualSalary > 50000, loanAmount < (2 * existingDebt))
+ then
+  rate.setLoanStatus("Rejected-Checking Credit Score less than 550");
+  rate.setLoanRate(999);
+end
+
+rule "Checking Credit Score less than 650"
+no-loop true
+ when
+  Participant((creditScore < 650 && creditScore >= 550), annualSalary > 50000, loanAmount < (2 * existingDebt))
+ then
+  rate.setLoanStatus("Approved-Checking Credit Score less than 650");
+  rate.setLoanRate(7.25);
+end
+
+rule "Checking Credit Score less than 750"
+no-loop true
+ when
+  Participant((creditScore < 750 && creditScore >= 650), annualSalary > 50000, loanAmount < (2 * existingDebt))
+ then
+  rate.setLoanStatus("Approved-Checking Credit Score less than 750");
+  rate.setLoanRate(6.25);
+end
+
+rule "Checking Credit Score greater than 750"
+no-loop true
+ when
+  Participant(creditScore >= 750, annualSalary > 50000, loanAmount < (2 * existingDebt))
+ then
+  rate.setLoanStatus("Approved");
+  rate.setLoanRate(5.25);
+end
